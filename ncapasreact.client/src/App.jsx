@@ -102,6 +102,27 @@ function App() {
             setUsuarios(data);
         }
     }
+
+    async function handleDeleteUser(idUsuario) {
+        if (window.confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
+            try {
+                const response = await fetch(`api/usuario/Delete/${idUsuario}`, {
+                    method: 'DELETE',
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(result.message || "Usuario eliminado correctamente.");
+                    populateUserData(); // Actualiza la lista de usuarios
+                } else {
+                    const error = await response.json();
+                    alert(`Error al eliminar el usuario: ${error.message || "Error desconocido"}`);
+                }
+            } catch (error) {
+                alert(`Error de red: ${error.message}`);
+            }
+        }
+    }
 }
 
 function RouterSetup() {

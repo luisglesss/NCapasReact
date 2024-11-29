@@ -54,5 +54,27 @@ namespace NCapasReact.Server.Controllers
                 });
             }
         }
+
+        [HttpDelete("Delete/{idUsuario}")]
+        public IActionResult DeleteUsuario(int idUsuario)
+        {
+            ML.Result result = BL.Usuario.UsuarioDeleteEF(idUsuario);
+
+            if (result.Correct)
+            {
+                // Asegurarse de que la respuesta siempre sea JSON válido
+                return Ok(new { success = true, message = "Usuario eliminado correctamente." });
+            }
+            else
+            {
+                // Enviar la respuesta de error en formato JSON
+                return BadRequest(new
+                {
+                    success = false,
+                    message = result.ErrorMessage,
+                    exception = result.Ex?.Message
+                });
+            }
+        }
     }
 }

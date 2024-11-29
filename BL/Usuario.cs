@@ -137,6 +137,67 @@ namespace BL
                 result.ErrorMessage = ex.Message;
                 result.Ex = ex;
             }
+            return result;
+        }
+
+        public static ML.Result UsuarioDeleteEF(int idUsuario)
+        {
+            ML.Result result = new ML.Result();
+
+            try
+            {
+                using (DL_EF.LgaonaContext context = new DL_EF.LgaonaContext())
+                {
+                    using (var transaction = context.Database.BeginTransaction())
+                    {
+                        try
+                        {
+                            // Buscar la dirección asociada al usuario
+                            var direccion = context.Direccions.FirstOrDefault(d => d.IdUsuario == idUsuario);
+
+                            if (direccion != null)
+                            {
+                                // Eliminar la dirección asociada
+                                context.Direccions.Remove(direccion);
+                                context.SaveChanges(); // Persistir la eliminación de la dirección
+                            }
+
+                            // Buscar al usuario
+                            var usuario = context.Usuarios.FirstOrDefault(u => u.IdUser == idUsuario);
+
+                            if (usuario != null)
+                            {
+                                // Eliminar al usuario
+                                context.Usuarios.Remove(usuario);
+                                context.SaveChanges(); // Persistir la eliminación del usuario
+
+                                // Confirmar la transacción si ambas eliminaciones fueron exitosas
+                                result.Correct = true;
+                                transaction.Commit();
+                            }
+                            else
+                            {
+                                result.Correct = false;
+                                result.ErrorMessage = "Usuario no encontrado.";
+                                transaction.Rollback(); // Revertir si el usuario no existe
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback(); // Revertir la transacción si ocurre un error
+                            result.Correct = false;
+                            result.ErrorMessage = ex.Message;
+                            result.Ex = ex;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Correct = false;
+                result.ErrorMessage = ex.Message;
+                result.Ex = ex;
+            }
 
             return result;
         }
