@@ -55,6 +55,29 @@ namespace NCapasReact.Server.Controllers
             }
         }
 
+
+        [HttpPost]
+        [Route("Update/{IdUsuario}")]
+        public IActionResult UsuarioUpdate(int IdUsuario, [FromForm] ML.Usuario usuario)
+        {
+            if (usuario.IdUsuario != IdUsuario)
+            {
+                return BadRequest(new { success = false, message = "El ID del usuario no coincide." });
+            }
+
+            ML.Result result = BL.Usuario.UsuarioUpdateEF(usuario);
+
+            if (result.Correct)
+            {
+                return Ok(result);
+            }
+            else
+            {
+                return NotFound(result);
+            }
+        }
+
+
         [HttpDelete("Delete/{idUsuario}")]
         public IActionResult DeleteUsuario(int idUsuario)
         {
