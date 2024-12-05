@@ -1,4 +1,4 @@
-## Sitio web completo de ecommerce en Laravel 10
+## Sitio REACT Y C#
 
 ### Características :
 - ##### PWA (aplicion web .NET)
