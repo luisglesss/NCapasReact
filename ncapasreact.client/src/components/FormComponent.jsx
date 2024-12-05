@@ -1,171 +1,299 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function FormComponent() {
     const [formData, setFormData] = useState({
         idUsuario: 0,
-        userName: '',
-        nombre: '',
-        apellidoPaterno: '',
-        apellidoMaterno: '',
-        email: '',
-        password: '',
-        sexo: '',
-        telefono: '',
-        celular: '',
-        fechaNacimiento: '',
-        curp: '',
-        idRol: '',
-        direccion: {
-            idDireccion: 0,
-            calle: '',
-            numeroInterior: '',
-            numeroExterior: '',
-            colonia: {
-                idColonia: 0,
-                codigoPostal: '',
-            },
+        userName: "",
+        nombre: "",
+        apellidoPaterno: "",
+        apellidoMaterno: "",
+        email: "",
+        password: "",
+        sexo: "",
+        telefono: "",
+        celular: "",
+        fechaNacimiento: "",
+        curp: "",
+        idRol: "",
+        usuarios: [""],
+        rol: {
+            idRol: 1,
+            nombre: "",
+            rols: [""]
         },
-        imagenPerfil: null,
-        status: true,
+        idDireccion: 0,
+        direccion: {
+            idDireccion: 1,
+            calle: "San Lucas",
+            numeroInterior: "15",
+            numeroExterior: "16",
+            colonia: {
+                idColonia: 1,
+                nombre: "",
+                codigoPostal: "",
+                municipio: {
+                    idMunicipio: 1,
+                    nombre: "",
+                    estado: {
+                        idEstado: 1,
+                        nombre: "",
+                        estados: [""]
+                    },
+                    municipios: [""]
+                },
+                colonias: [""]
+            },
+            idUsuario: "",
+            direcciones: [""]
+        },
+        imagenPerfil: "",
+        imagenBase64: "",
+        status: true
     });
 
-    const [errors, setErrors] = useState({});
-    const location = useLocation();
+    const [formErrors, setFormErrors] = useState({});
+    const [previewImage, setPreviewImage] = useState(null);
+    const navigate = useNavigate();
 
-    useEffect(() => {
-        const urlParams = new URLSearchParams(location.search);
-        const idUsuario = urlParams.get('id'); // Obtener el id del usuario desde la URL
-
-        if (idUsuario) {
-            fetchUserData(idUsuario); // Cargar los datos del usuario si el id está presente
-        }
-    }, [location.search]);
-
-    // Función para cargar los datos del usuario
-    const fetchUserData = async (idUsuario) => {
-        try {
-            // Usar la URL correcta para obtener los datos del usuario
-            const response = await fetch(`https://localhost:54340/api/usuario/update/${idUsuario}`);
-            if (response.ok) {
-                const user = await response.json();
-                setFormData(user); // Llenar el formulario con los datos del usuario
-            } else {
-                alert('Error al cargar los datos del usuario.');
-            }
-        } catch (error) {
-            console.error('Error al obtener los datos:', error);
-            alert('Error de red al cargar los datos del usuario.');
-        }
-    };
-
-    // Manejo de los cambios en los campos del formulario
-    const handleChange = (e) => {
+    const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prevFormData) => ({
-            ...prevFormData,
-            [name]: value,
-        }));
+        setFormData({ ...formData, [name]: value });
     };
 
-    // Manejo del cambio de la imagen de perfil
     const handleFileChange = (e) => {
-        setFormData((prevFormData) => ({
-            ...prevFormData,
-            imagenPerfil: e.target.files[0],
-        }));
+        const file = e.target.files[0];
+        setFormData({ ...formData, imagenPerfil: file });
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = () => setPreviewImage(reader.result);
+            reader.readAsDataURL(file);
+        }
     };
 
-    // Función para enviar el formulario
+    const validateForm = () => {
+        const errors = {};
+
+        if (!formData.userName.trim()) errors.userName = "El campo Nombre de usuario es obligatorio.";
+        if (!formData.nombre.trim()) errors.nombre = "El campo Nombre es obligatorio.";
+        if (!formData.apellidoPaterno.trim()) errors.apellidoPaterno = "El campo Apellido Paterno es obligatorio.";
+        if (!formData.apellidoMaterno.trim()) errors.apellidoMaterno = "El campo Apellido Materno es obligatorio.";
+        if (!formData.email.trim()) errors.email = "El campo Correo electrónico es obligatorio.";
+        if (!formData.password.trim()) errors.password = "El campo Password es obligatorio";
+        if (!formData.curp.trim()) errors.curp = "El campo CURP es obligatorio.";
+        if (!formData.telefono.trim()) errors.telefono = "El campo Teléfono es obligatorio.";
+        if (!formData.celular.trim()) errors.celular = "El campo Celular es obligatorio.";
+        if (!formData.sexo.trim()) errors.sexo = "El campo Sexo es requerido";
+        if (!formData.fechaNacimiento.trim()) errors.fechaNacimiento = "El campo Fecha de Nacimiento es obligatorio.";
+        if (!formData.idRol) errors.idRol = "El campo Rol es obligatorio.";
+        if (!formData.idDireccion) errors.idDireccion = "El campo Dirección es obligatorio.";
+
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const formDataToSend = new FormData();
-        for (const key in formData) {
-            if (key === 'direccion') {
-                formDataToSend.append(key, JSON.stringify(formData[key])); // Convertir la dirección a JSON
-            } else if (key === 'imagenPerfil' && formData[key]) {
-                formDataToSend.append(key, formData[key]);
-            } else {
-                formDataToSend.append(key, formData[key]);
-            }
-        }
+        if (!validateForm()) return; // Detener el envío si hay errores
+
+        const requestData = {
+            ...formData,
+            imagenBase64: previewImage ? previewImage : "",
+            imagenPerfil: undefined // No enviar el archivo directamente
+        };
 
         try {
-            const method = formData.idUsuario ? 'PUT' : 'POST'; // Usar PUT si se trata de una actualización
-            const response = await fetch(`https://localhost:54340/api/usuario/update/${formData.idUsuario}`, {
-                method: method,
-                body: formDataToSend,
+            const response = await fetch("http://localhost:5054/api/usuario/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(requestData), // Convertir a JSON
             });
 
-            if (!response.ok) {
-                const errorResponse = await response.json();
-                console.error('Error en la solicitud:', errorResponse);
-                alert('Error al actualizar el usuario.');
-                return;
+            if (response.ok) {
+                const result = await response.json();
+                alert(result.message || "Usuario agregado con éxito.");
+                navigate("/"); // Redirige a la lista de usuarios
+            } else {
+                const error = await response.json();
+                alert(`Error: ${error.message || "Error desconocido."}`);
             }
-
-            alert('Usuario actualizado con éxito!');
         } catch (error) {
-            console.error('Error al enviar los datos:', error);
-            alert('Error al actualizar el usuario.');
+            alert(`Error de red: ${error.message}`);
         }
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-            <h2 className="text-3xl font-semibold text-center text-gray-700 mb-6">
-                {formData.idUsuario ? 'Actualizar Usuario' : 'Agregar Usuario'}
-            </h2>
+        <div className="p-6">
+            <h1 className="text-2xl font-bold mb-4">Agregar Usuario</h1>
             <form onSubmit={handleSubmit} className="space-y-4">
-                {Object.keys(formData).map((key) => {
-                    if (key === 'imagenPerfil') {
-                        return (
-                            <div key={key} className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 capitalize">{key}</label>
-                                <input
-                                    type="file"
-                                    name={key}
-                                    onChange={handleFileChange}
-                                    className="mt-1 block w-full text-sm text-gray-500 file:border file:border-gray-300 file:bg-gray-100 file:text-gray-500 file:px-4 file:py-2"
-                                />
-                            </div>
-                        );
-                    }
-
-                    if (typeof formData[key] === 'object' && formData[key] !== null) {
-                        return null; // Manejar direcciones u otros objetos anidados de forma separada
-                    }
-
-                    return (
-                        <div key={key} className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 capitalize">{key}</label>
-                            <input
-                                type={key === 'password' ? 'password' : 'text'}
-                                name={key}
-                                value={formData[key]}
-                                onChange={handleChange}
-                                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                    );
-                })}
-
-                <div className="flex justify-between">
-                    <button
-                        type="button"
-                        onClick={() => window.history.back()}
-                        className="bg-gray-300 px-4 py-2 text-white rounded-md hover:bg-gray-400"
-                    >
-                        Regresar
-                    </button>
-                    <button
-                        type="submit"
-                        className="bg-blue-600 px-4 py-2 text-white rounded-md hover:bg-blue-700"
-                    >
-                        {formData.idUsuario ? 'Actualizar Usuario' : 'Guardar Usuario'}
-                    </button>
+                <div>
+                    <label className="block text-sm font-medium text-gray-200">Nombre de usuario</label>
+                    <input
+                        type="text"
+                        name="userName"
+                        value={formData.userName}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {formErrors.userName && <p className="text-red-500">{formErrors.userName}</p>}
                 </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-200">Nombre</label>
+                    <input
+                        type="text"
+                        name="nombre"
+                        value={formData.nombre}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {formErrors.nombre && <p className="text-red-500">{formErrors.nombre}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-200">Apellido Paterno</label>
+                    <input
+                        type="text"
+                        name="apellidoPaterno"
+                        value={formData.apellidoPaterno}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {formErrors.apellidoPaterno && <p className="text-red-500">{formErrors.apellidoPaterno}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-200">Apellido Materno</label>
+                    <input
+                        type="text"
+                        name="apellidoMaterno"
+                        value={formData.apellidoMaterno}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {formErrors.apellidoMaterno && <p className="text-red-500">{formErrors.apellidoMaterno}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-200">Email</label>
+                    <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {formErrors.email && <p className="text-red-500">{formErrors.email}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-200">Password</label>
+                    <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {formErrors.email && <p className="text-red-500">{formErrors.password}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-200">Telefono</label>
+                    <input
+                        type="text"
+                        name="telefono"
+                        value={formData.telefono}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {formErrors.telefono && <p className="text-red-500">{formErrors.telefono}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-200">Celular</label>
+                    <input
+                        type="text"
+                        name="celular"
+                        value={formData.celular}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {formErrors.celular && <p className="text-red-500">{formErrors.celular}}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-200">Sexo</label>
+                    <input
+                        type="text"
+                        name="sexo"
+                        value={formData.sexo}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {formErrors.sexo && <p className="text-red-500">{formErrors.sexo}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-200">Fecha de Nacimiento</label>
+                    <input
+                        type="text"
+                        name="fechaNacimiento"
+                        value={formData.fechaNacimiento}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {formErrors.fechaNacimiento && <p className="text-red-500">{formErrors.fechaNacimiento}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-200">CURP</label>
+                    <input
+                        type="text"
+                        name="curp"
+                        value={formData.curp}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {formErrors.curp && <p className="text-red-500">{formErrors.curp}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-200">Rol</label>
+                    <input
+                        type="text"
+                        name="idRol"
+                        value={formData.idRol}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {formErrors.idRol && <p className="text-red-500">{formErrors.idRol}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-200">Dirección</label>
+                    <input
+                        type="text"
+                        name="idDireccion"
+                        value={formData.idDireccion}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {formErrors.idDireccion && <p className="text-red-500">{formErrors.idDireccion}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-200">Imagen de Perfil</label>
+                    <input
+                        type="file"
+                        name="imagenPerfil"
+                        onChange={handleFileChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {previewImage && (
+                        <img
+                            src={previewImage}
+                            alt="Vista previa"
+                            className="mt-2 w-24 h-24 rounded-full"
+                        />
+                    )}
+                </div>
+                <button
+                    type="submit"
+                    className="w-full bg-blue-600 text-white py-2 rounded-lg"
+                >
+                    Guardar
+                </button>
             </form>
         </div>
     );

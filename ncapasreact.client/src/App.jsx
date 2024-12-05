@@ -72,7 +72,7 @@ function App() {
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-4">
-                <h1 className="text-3xl font-bold text-white">Usuarios</h1>
+                <h1 className="text-3xl font-bold text-black">Usuarios</h1>
                 {/* Botón Agregar Usuario */}
                 <button
                     onClick={handleAddUser}

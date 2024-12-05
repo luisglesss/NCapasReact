@@ -33,16 +33,20 @@ namespace NCapasReact.Server.Controllers
             }
         }
 
-        [HttpPost]
-        [Route("Add/")]
-        public IActionResult UsuarioAdd([FromBody] ML.Usuario usuario)
+        [HttpPost("Add")]
+        public IActionResult AddUsuario([FromBody] ML.Usuario usuario)
         {
             // Llama al método en la capa BL para agregar el usuario
             ML.Result result = BL.Usuario.UsuarioAddEF(usuario);
 
             if (result.Correct)
             {
-                return Ok(result.Objects); // Retorna la respuesta exitosa con el nuevo usuario
+                return Ok(new
+                {
+                    success = true,
+                    message = "Usuario agregado con éxito.",
+                    idUsuario = usuario.IdUsuario
+                });
             }
             else
             {
@@ -55,8 +59,7 @@ namespace NCapasReact.Server.Controllers
             }
         }
 
-
-        [HttpPost]
+        [HttpPut]
         [Route("Update/{IdUsuario}")]
         public IActionResult UsuarioUpdate(int IdUsuario, [FromForm] ML.Usuario usuario)
         {
