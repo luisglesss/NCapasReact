@@ -1,4 +1,4 @@
-## Sitio REACT Y C#
+## Sitio WEB REACT Y C#
 
 ### Características :
 - ##### PWA (aplicion web .NET)
