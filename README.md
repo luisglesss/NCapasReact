@@ -1,7 +1,7 @@
 ## Sitio WEB REACT Y C#
 
 ### Características :
-- ##### PWA (aplicion web .NET)
+- ##### MVC (aplicion web .NET)
 # ====== FRONT-END REACT and TAILWID CSS =======
 
 - Disposición Responsive
