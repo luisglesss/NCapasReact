@@ -25,9 +25,9 @@ function FormComponent() {
         idDireccion: 0,
         direccion: {
             idDireccion: 1,
-            calle: "San Lucas",
-            numeroInterior: "15",
-            numeroExterior: "16",
+            calle: "",
+            numeroInterior: "",
+            numeroExterior: "",
             colonia: {
                 idColonia: 1,
                 nombre: "",
@@ -63,13 +63,27 @@ function FormComponent() {
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-        setFormData({ ...formData, imagenPerfil: file });
         if (file) {
             const reader = new FileReader();
-            reader.onload = () => setPreviewImage(reader.result);
+            reader.onload = () => {
+                const base64String = reader.result.split(",")[1]; // Obtener Base64 sin el prefijo
+                // Validate Base64
+                if (isValidBase64(base64String)) {
+                    setFormData({ ...formData, imagenBase64: base64String });
+                    setPreviewImage(reader.result); // Mostrar vista previa
+                } else {
+                    alert("La imagen no tiene un formato válido.");
+                }
+            };
             reader.readAsDataURL(file);
         }
     };
+
+    const isValidBase64 = (str) => {
+        const regex = /^[A-Za-z0-9+/=]+$/;
+        return regex.test(str);
+    };
+
 
     const validateForm = () => {
         const errors = {};
@@ -215,7 +229,7 @@ function FormComponent() {
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
                     />
-                    {formErrors.celular && <p className="text-red-500">{formErrors.celular}}</p>}
+                    {formErrors.celular && <p className="text-red-500">{formErrors.celular}</p>}
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-200">Sexo</label>
@@ -273,19 +287,49 @@ function FormComponent() {
                     {formErrors.idDireccion && <p className="text-red-500">{formErrors.idDireccion}</p>}
                 </div>
                 <div>
+                    <label className="block text-sm font-medium text-gray-200">Calle</label>
+                    <input
+                        type="text"
+                        name="calle"
+                        value={formData.calle}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {formErrors.calle && <p className="text-red-500">{formErrors.calle}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-200">Numero Interior</label>
+                    <input
+                        type="text"
+                        name="numeroInterior"
+                        value={formData.numeroInterior}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {formErrors.numeroInterior && <p className="text-red-500">{formErrors.numeroInterior}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-200">Numero Exterior</label>
+                    <input
+                        type="text"
+                        name="numeroExterior"
+                        value={formData.numeroExterior}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                    />
+                    {formErrors.numeroExterior && <p className="text-red-500">{formErrors.numeroExterior}</p>}
+                </div>
+                <div>
                     <label className="block text-sm font-medium text-gray-200">Imagen de Perfil</label>
                     <input
                         type="file"
                         name="imagenPerfil"
+                        accept="image/*"
                         onChange={handleFileChange}
                         className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
                     />
                     {previewImage && (
-                        <img
-                            src={previewImage}
-                            alt="Vista previa"
-                            className="mt-2 w-24 h-24 rounded-full"
-                        />
+                        <img src={previewImage} alt="Vista previa" className="mt-4 w-32 h-32 rounded-full" />
                     )}
                 </div>
                 <button
