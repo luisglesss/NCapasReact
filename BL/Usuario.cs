@@ -202,7 +202,7 @@ namespace BL
             try
             {
                 // Utilizar GetById para obtener el usuario actual
-                var getUsuarioResult = GetById(usuario.IdUsuario); // Obtener el usuario existente a través de GetById
+                var getUsuarioResult = GetById(usuario.IdUsuario);
 
                 if (getUsuarioResult.Correct)
                 {

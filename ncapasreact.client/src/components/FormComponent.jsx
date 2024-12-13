@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+var base64String;
 function FormComponent() {
     const [formData, setFormData] = useState({
         idUsuario: 0,
@@ -18,7 +19,7 @@ function FormComponent() {
         idRol: "",
         usuarios: [""],
         rol: {
-            idRol: 1,
+            idRol: 0,
             nombre: "",
             rols: [""]
         },
@@ -52,13 +53,58 @@ function FormComponent() {
         status: true
     });
 
+    const [roles, setRoles] = useState([]);
     const [formErrors, setFormErrors] = useState({});
     const [previewImage, setPreviewImage] = useState(null);
     const navigate = useNavigate();
+    const [isLoadingRoles, setIsLoadingRoles] = useState(true);
 
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                const response = await fetch("http://localhost:5054/api/usuario/getallroles");
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data); // Para verificar la estructura de datos
+                    if (Array.isArray(data.roles)) {
+                        setRoles(data.roles); // Accede a la propiedad 'roles'
+                    } else {
+                        console.error("Se esperaba un array en la propiedad 'roles', pero no se recibió uno.");
+                    }
+                } else {
+                    console.error("Error al cargar los roles.");
+                }
+            } catch (error) {
+                console.error("Error al conectar con el servidor:", error);
+            } finally {
+                setIsLoadingRoles(false);
+            }
+        };
+        fetchRoles();
+    }, []);
+
+
+
+    // Manejador para cambios en los inputs
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+    };
+
+    // Manejador para la selección de rol
+    const handleRoleChange = (event) => {
+        const selectedIdRol = event.target.value; // Obtén el ID del rol seleccionado
+        const selectedRole = roles.find((role) => role.idRol === parseInt(selectedIdRol)); // Busca el rol completo por ID
+
+        setFormData((prevData) => ({
+            ...prevData,
+            idRol: selectedIdRol, // Actualiza el ID del rol
+            rol: {
+                ...prevData.rol,
+                idRol: selectedRole.idRol, // Actualiza los detalles del rol seleccionado
+                nombre: selectedRole.nombre,
+            },
+        }));
     };
 
     const handleFileChange = (e) => {
@@ -66,7 +112,8 @@ function FormComponent() {
         if (file) {
             const reader = new FileReader();
             reader.onload = () => {
-                const base64String = reader.result.split(",")[1]; // Obtener Base64 sin el prefijo
+                 base64String = reader.result.split(",")[1]; // Obtener Base64 sin el prefijo
+                console.log(base64String)
                 // Validate Base64
                 if (isValidBase64(base64String)) {
                     setFormData({ ...formData, imagenBase64: base64String });
@@ -113,7 +160,7 @@ function FormComponent() {
 
         const requestData = {
             ...formData,
-            imagenBase64: previewImage ? previewImage : "",
+            imagenBase64: previewImage ? base64String : "",
             imagenPerfil: undefined // No enviar el archivo directamente
         };
 
@@ -140,9 +187,9 @@ function FormComponent() {
     };
 
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Agregar Usuario</h1>
-            <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="container mx-auto p-6">
+            <h1 className="text-3xl font-bold text-center mb-8">Registrar Nuevo Usuario</h1>
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-200">Nombre de usuario</label>
                     <input
@@ -266,13 +313,19 @@ function FormComponent() {
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-200">Rol</label>
-                    <input
-                        type="text"
+                    <select
                         name="idRol"
                         value={formData.idRol}
-                        onChange={handleInputChange}
+                        onChange={handleRoleChange}
                         className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
-                    />
+                    >
+                        <option value="">Selecciona un rol</option>
+                        {roles.map((rol) => (
+                            <option key={rol.idRol} value={rol.idRol}>
+                                {rol.nombre}
+                            </option>
+                        ))}
+                    </select>
                     {formErrors.idRol && <p className="text-red-500">{formErrors.idRol}</p>}
                 </div>
                 <div>
