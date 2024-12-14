@@ -23,7 +23,7 @@ function FormComponent() {
             nombre: "",
             rols: [""]
         },
-        idDireccion: 0,
+        idDireccion: 1,
         direccion: {
             idDireccion: 1,
             calle: "",
@@ -83,8 +83,6 @@ function FormComponent() {
         fetchRoles();
     }, []);
 
-
-
     // Manejador para cambios en los inputs
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -106,6 +104,85 @@ function FormComponent() {
             },
         }));
     };
+
+
+    const [estados, setEstados] = useState([]); // Lista de estados
+    const [municipios, setMunicipios] = useState([]); // Lista de municipios
+    const [colonias, setColonias] = useState([]); // Lista de colonias
+    const [selectedEstado, setSelectedEstado] = useState(""); // Estado seleccionado
+    const [selectedMunicipio, setSelectedMunicipio] = useState(""); // Municipio seleccionado
+
+    // Cargar estados desde la API
+    useEffect(() => {
+        fetch("http://localhost:5054/api/usuario/estados")
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.success) {
+                    setEstados(data.data); // Establece los estados
+                } else {
+                    console.error("Error al cargar estados:", data.message);
+                }
+            })
+            .catch((error) => console.error("Error en la solicitud de estados:", error));
+    }, []);
+
+    const handleEstadoChange = (e) => {
+        const estadoId = parseInt(e.target.value, 10); // Captura el idEstado seleccionado
+
+        if (isNaN(estadoId)) {
+            console.error("El ID de estado no es válido.");
+            return; // Salir si no es un número válido
+        }
+
+        setSelectedEstado(estadoId);
+
+        // Fetch de municipios para el estado seleccionado
+        fetch(`http://localhost:5054/api/usuario/municipios/${estadoId}`)
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.success) {
+                    setMunicipios(data.data); // Establece los municipios
+                } else {
+                    console.error("Error al cargar municipios:", data.message);
+                }
+            })
+            .catch((error) => console.error("Error en la solicitud de municipios:", error));
+
+        // Limpiar municipios y colonias al cambiar el estado
+        setMunicipios([]);
+        setColonias([]);
+        setSelectedMunicipio("");
+    };
+
+
+    // Maneja el cambio de municipio
+    const handleMunicipioChange = (e) => {
+        const municipioId = parseInt(e.target.value, 10); // Captura el idMunicipio seleccionado
+
+        if (isNaN(municipioId)) {
+            console.error("El ID de municipio no es válido.");
+            return; // Salir si no es un número válido
+        }
+
+        setSelectedMunicipio(municipioId);
+
+        // Fetch de colonias para el municipio seleccionado
+        fetch(`http://localhost:5054/api/usuario/colonias/${municipioId}`)
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.success) {
+                    setColonias(data.data); // Establece las colonias
+                } else {
+                    console.error("Error al cargar colonias:", data.message);
+                }
+            })
+            .catch((error) => console.error("Error en la solicitud de colonias:", error));
+    };
+
+
+    function handleBack() {
+        navigate('/');
+    }
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -188,136 +265,145 @@ function FormComponent() {
 
     return (
         <div className="container mx-auto p-6">
-            <h1 className="text-3xl font-bold text-center mb-8">Registrar Nuevo Usuario</h1>
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <h1 className="text-4xl font-extrabold text-center mb-8 text-blue-500">
+                Registrar Nuevo Usuario
+            </h1>
+            <form
+                onSubmit={handleSubmit}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-gray-800 p-8 rounded-lg shadow-lg"
+            >
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Nombre de usuario</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Nombre de usuario</label>
                     <input
                         type="text"
                         name="userName"
                         value={formData.userName}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {formErrors.userName && <p className="text-red-500">{formErrors.userName}</p>}
+                    {formErrors.userName && <p className="text-red-500 mt-1 text-xs">{formErrors.userName}</p>}
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Nombre</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Nombre</label>
                     <input
                         type="text"
                         name="nombre"
                         value={formData.nombre}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {formErrors.nombre && <p className="text-red-500">{formErrors.nombre}</p>}
+                    {formErrors.nombre && <p className="text-red-500 mt-1 text-xs">{formErrors.nombre}</p>}
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Apellido Paterno</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Apellido Paterno</label>
                     <input
                         type="text"
                         name="apellidoPaterno"
                         value={formData.apellidoPaterno}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {formErrors.apellidoPaterno && <p className="text-red-500">{formErrors.apellidoPaterno}</p>}
+                    {formErrors.apellidoPaterno && <p className="text-red-500 mt-1 text-xs">{formErrors.apellidoPaterno}</p>}
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Apellido Materno</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Apellido Materno</label>
                     <input
                         type="text"
                         name="apellidoMaterno"
                         value={formData.apellidoMaterno}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {formErrors.apellidoMaterno && <p className="text-red-500">{formErrors.apellidoMaterno}</p>}
+                    {formErrors.apellidoMaterno && <p className="text-red-500 mt-1 text-xs">{formErrors.apellidoMaterno}</p>}
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Email</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Email</label>
                     <input
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {formErrors.email && <p className="text-red-500">{formErrors.email}</p>}
+                    {formErrors.email && <p className="text-red-500 mt-1 text-xs">{formErrors.email}</p>}
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Password</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Password</label>
                     <input
                         type="password"
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {formErrors.email && <p className="text-red-500">{formErrors.password}</p>}
+                    {formErrors.password && <p className="text-red-500 mt-1 text-xs">{formErrors.password}</p>}
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Telefono</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Teléfono</label>
                     <input
                         type="text"
                         name="telefono"
                         value={formData.telefono}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {formErrors.telefono && <p className="text-red-500">{formErrors.telefono}</p>}
+                    {formErrors.telefono && <p className="text-red-500 mt-1 text-xs">{formErrors.telefono}</p>}
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Celular</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Celular</label>
                     <input
                         type="text"
                         name="celular"
                         value={formData.celular}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {formErrors.celular && <p className="text-red-500">{formErrors.celular}</p>}
+                    {formErrors.celular && <p className="text-red-500 mt-1 text-xs">{formErrors.celular}</p>}
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Sexo</label>
-                    <input
-                        type="text"
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Sexo</label>
+                    <select
                         name="sexo"
                         value={formData.sexo}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
-                    />
-                    {formErrors.sexo && <p className="text-red-500">{formErrors.sexo}</p>}
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">Selecciona una opción</option>
+                        <option value="M">Masculino</option>
+                        <option value="F">Femenino</option>
+                    </select>
+                    {formErrors.sexo && <p className="text-red-500 mt-1 text-xs">{formErrors.sexo}</p>}
                 </div>
+
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Fecha de Nacimiento</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Fecha de Nacimiento</label>
                     <input
                         type="text"
                         name="fechaNacimiento"
                         value={formData.fechaNacimiento}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {formErrors.fechaNacimiento && <p className="text-red-500">{formErrors.fechaNacimiento}</p>}
+                    {formErrors.fechaNacimiento && <p className="text-red-500 mt-1 text-xs">{formErrors.fechaNacimiento}</p>}
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">CURP</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">CURP</label>
                     <input
                         type="text"
                         name="curp"
                         value={formData.curp}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {formErrors.curp && <p className="text-red-500">{formErrors.curp}</p>}
+                    {formErrors.curp && <p className="text-red-500 mt-1 text-xs">{formErrors.curp}</p>}
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Rol</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Rol</label>
                     <select
                         name="idRol"
                         value={formData.idRol}
                         onChange={handleRoleChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option value="">Selecciona un rol</option>
                         {roles.map((rol) => (
@@ -326,73 +412,105 @@ function FormComponent() {
                             </option>
                         ))}
                     </select>
-                    {formErrors.idRol && <p className="text-red-500">{formErrors.idRol}</p>}
+                    {formErrors.idRol && <p className="text-red-500 mt-1 text-xs">{formErrors.idRol}</p>}
                 </div>
+
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Dirección</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Dirección</label>
                     <input
                         type="text"
-                        name="idDireccion"
+                        name="direccion"
                         value={formData.idDireccion}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {formErrors.idDireccion && <p className="text-red-500">{formErrors.idDireccion}</p>}
+                    {formErrors.idDireccion && <p className="text-red-500 mt-1 text-xs">{formErrors.idDireccion}</p>}
                 </div>
+
+                {/* Estado */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Calle</label>
-                    <input
-                        type="text"
-                        name="calle"
-                        value={formData.calle}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
-                    />
-                    {formErrors.calle && <p className="text-red-500">{formErrors.calle}</p>}
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Estado</label>
+                    <select
+                        value={selectedEstado}
+                        onChange={handleEstadoChange}
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">Selecciona un estado</option>
+                        {estados.map((estado) => (
+                            <option key={estado.idEstado} value={estado.idEstado}>
+                                {estado.nombre}
+                            </option>
+                        ))}
+                    </select>
+
                 </div>
+
+                {/* Municipio */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Numero Interior</label>
-                    <input
-                        type="text"
-                        name="numeroInterior"
-                        value={formData.numeroInterior}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
-                    />
-                    {formErrors.numeroInterior && <p className="text-red-500">{formErrors.numeroInterior}</p>}
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Municipio</label>
+                    <select
+                        value={selectedMunicipio}
+                        onChange={handleMunicipioChange}
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={!selectedEstado} // Deshabilitar si no se ha seleccionado un estado
+                    >
+                        <option value="">Selecciona un municipio</option>
+                        {municipios.map((municipio) => (
+                            <option key={municipio.idMunicipio} value={municipio.idMunicipio}>
+                                {municipio.nombre}
+                            </option>
+                        ))}
+                    </select>
+
                 </div>
+
+                {/* Colonia */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Numero Exterior</label>
-                    <input
-                        type="text"
-                        name="numeroExterior"
-                        value={formData.numeroExterior}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
-                    />
-                    {formErrors.numeroExterior && <p className="text-red-500">{formErrors.numeroExterior}</p>}
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Colonia</label>
+                    <select
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={!selectedMunicipio} // Deshabilita si no hay un municipio seleccionado
+                    >
+                        <option value="">Selecciona una colonia</option>
+                        {colonias.map((colonia) => (
+                            <option key={colonia.id} value={colonia.id}>
+                                {colonia.nombre}
+                            </option>
+                        ))}
+                    </select>
                 </div>
+
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Imagen de Perfil</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Imagen de Perfil</label>
                     <input
                         type="file"
                         name="imagenPerfil"
                         accept="image/*"
                         onChange={handleFileChange}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 text-white"
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {previewImage && (
                         <img src={previewImage} alt="Vista previa" className="mt-4 w-32 h-32 rounded-full" />
                     )}
                 </div>
-                <button
-                    type="submit"
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg"
-                >
-                    Guardar
-                </button>
+                <div className="md:col-span-2 lg:col-span-3 flex justify-between mt-6">
+                    <button
+                        type="button"
+                        onClick={handleBack}
+                        className="w-1/3 bg-red-600 hover:bg-red-800 text-white py-3 rounded-lg transition duration-200"
+                    >
+                        Regresar
+                    </button>
+                    <button
+                        type="submit"
+                        className="w-2/3 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition duration-200"
+                    >
+                        Guardar Usuario
+                    </button>
+                </div>
             </form>
         </div>
+
     );
 }
 
