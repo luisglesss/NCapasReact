@@ -279,6 +279,8 @@ function FormComponent() {
                         name="userName"
                         value={formData.userName}
                         onChange={handleInputChange}
+                        pattern="^[a-zA-Z0-9_]+$"
+                        title="El nombre de usuario solo puede contener letras, números y guiones bajos."
                         className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {formErrors.userName && <p className="text-red-500 mt-1 text-xs">{formErrors.userName}</p>}
@@ -290,6 +292,8 @@ function FormComponent() {
                         name="nombre"
                         value={formData.nombre}
                         onChange={handleInputChange}
+                        pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$"
+                        title="El nombre solo puede contener letras y espacios."
                         className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {formErrors.nombre && <p className="text-red-500 mt-1 text-xs">{formErrors.nombre}</p>}
@@ -301,6 +305,8 @@ function FormComponent() {
                         name="apellidoPaterno"
                         value={formData.apellidoPaterno}
                         onChange={handleInputChange}
+                        pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$"
+                        title="El apellido solo puede contener letras y espacios."
                         className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {formErrors.apellidoPaterno && <p className="text-red-500 mt-1 text-xs">{formErrors.apellidoPaterno}</p>}
@@ -323,6 +329,8 @@ function FormComponent() {
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
+                        pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                        title="Ingresa un correo electrónico válido."
                         className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {formErrors.email && <p className="text-red-500 mt-1 text-xs">{formErrors.email}</p>}
@@ -334,6 +342,8 @@ function FormComponent() {
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
+                        pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$"
+                        title="La contraseña debe tener al menos 8 caracteres, incluyendo una letra, un número y un carácter especial."
                         className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {formErrors.password && <p className="text-red-500 mt-1 text-xs">{formErrors.password}</p>}
@@ -345,6 +355,8 @@ function FormComponent() {
                         name="telefono"
                         value={formData.telefono}
                         onChange={handleInputChange}
+                        pattern="^\d{10}$"
+                        title="El teléfono debe contener exactamente 10 dígitos."
                         className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {formErrors.telefono && <p className="text-red-500 mt-1 text-xs">{formErrors.telefono}</p>}
@@ -382,6 +394,7 @@ function FormComponent() {
                         name="fechaNacimiento"
                         value={formData.fechaNacimiento}
                         onChange={handleInputChange}
+                        onChange={handleInputChange}
                         className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {formErrors.fechaNacimiento && <p className="text-red-500 mt-1 text-xs">{formErrors.fechaNacimiento}</p>}
@@ -393,6 +406,8 @@ function FormComponent() {
                         name="curp"
                         value={formData.curp}
                         onChange={handleInputChange}
+                        pattern="^[A-Z]{4}\d{6}[H|M][A-Z]{5}[A-Z0-9]{2}$"
+                        title="Ingresa un CURP válido."
                         className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {formErrors.curp && <p className="text-red-500 mt-1 text-xs">{formErrors.curp}</p>}
