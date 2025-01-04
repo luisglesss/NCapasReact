@@ -33,6 +33,28 @@ namespace NCapasReact.Server.Controllers
             }
         }
 
+        [HttpGet("GetById")]
+        public IActionResult GetById(int id_user)
+        {
+            // Llama al método en la capa BL para obtener los datos
+            ML.Result result = BL.Usuario.GetById(id_user);
+
+            // Devuelve los datos o un mensaje de error en base al resultado
+            if (result.Correct)
+            {
+                return Ok(result.Objects); // Retorna solo la lista de usuarios
+            }
+            else
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = result.ErrorMessage,
+                    exception = result.Ex?.Message
+                });
+            }
+        }
+
         [HttpPost("Add")]
         public IActionResult AddUsuario([FromBody] ML.Usuario usuario)
         {
@@ -202,7 +224,7 @@ namespace NCapasReact.Server.Controllers
             }
         }
 
-        [HttpPut]
+        /*[HttpPut]
         [Route("Update/{IdUsuario}")]
         public IActionResult UsuarioUpdate(int IdUsuario, [FromForm] ML.Usuario usuario)
         {
@@ -211,12 +233,12 @@ namespace NCapasReact.Server.Controllers
                 return BadRequest(new { success = false, message = "El ID del usuario no coincide." });
             }
 
-            // Verificar si la imagen Base64 está presente y no es vacía
+            // Verificar imagen Base64
             if (!string.IsNullOrEmpty(usuario.ImagenBase64))
             {
                 try
                 {
-                    // Verificar si la cadena Base64 tiene el prefijo 'data:image/...;base64,'
+                    // Verificar cadena Base64 'data:image/...;base64,'
                     if (usuario.ImagenBase64.Contains("data:image"))
                     {
                         // Eliminar el prefijo
@@ -224,7 +246,7 @@ namespace NCapasReact.Server.Controllers
                         usuario.ImagenBase64 = base64Data;
                     }
 
-                    // Log para verificar la cadena Base64 recibida
+                    //Verificar la cadena Base64 recibida
                     Console.WriteLine("Imagen Base64 recibida (primeros 100 caracteres): " + usuario.ImagenBase64.Substring(0, Math.Min(100, usuario.ImagenBase64.Length)));
 
                     // Convertir la cadena Base64 a byte[]
@@ -262,6 +284,48 @@ namespace NCapasReact.Server.Controllers
                     message = result.ErrorMessage,
                     exception = result.Ex?.Message
                 });
+            }
+        }*/
+
+        [HttpPost]
+        [Route("update/{IdUsuario}")]
+        public IActionResult UsuarioUpdate(int IdUsuario, [FromBody] ML.Usuario usuario)
+        {
+            if (usuario.IdUsuario != IdUsuario)
+            {
+                return BadRequest(new { success = false, message = "El ID del usuario no coincide." });
+            }
+
+            // Verificar y convertir imagen Base64, si es necesario
+            if (!string.IsNullOrEmpty(usuario.ImagenBase64))
+            {
+                try
+                {
+                    if (usuario.ImagenBase64.Contains("data:image"))
+                    {
+                        var base64Data = usuario.ImagenBase64.Substring(usuario.ImagenBase64.IndexOf("base64,") + 7);
+                        usuario.ImagenBase64 = base64Data;
+                    }
+
+                    byte[] imageBytes = Convert.FromBase64String(usuario.ImagenBase64);
+                    usuario.ImagenPerfil = imageBytes;
+                }
+                catch (FormatException)
+                {
+                    return BadRequest(new { success = false, message = "Formato de imagen Base64 inválido." });
+                }
+            }
+
+            // Llamar al método de la capa BL
+            var result = BL.Usuario.UsuarioUpdateEF(usuario);
+
+            if (result.Correct)
+            {
+                return Ok(new { success = true, message = "Usuario actualizado con éxito.", idUsuario = usuario.IdUsuario });
+            }
+            else
+            {
+                return NotFound();
             }
         }
 

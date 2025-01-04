@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 var base64String;
 function FormComponent() {
@@ -58,6 +58,7 @@ function FormComponent() {
     const [previewImage, setPreviewImage] = useState(null);
     const navigate = useNavigate();
     const [isLoadingRoles, setIsLoadingRoles] = useState(true);
+    const { idUsuario } = useParams();
 
     useEffect(() => {
         const fetchRoles = async () => {
@@ -83,6 +84,36 @@ function FormComponent() {
         fetchRoles();
     }, []);
 
+    useEffect(() => {
+        if (idUsuario) {
+            fetchUserData(idUsuario);
+        }
+    }, [idUsuario]);
+
+    const fetchUserData = async (idUsuario) => {
+        try {
+            const response = await fetch(`http://localhost:5054/api/Usuario/GetById?id_user=${idUsuario}`);
+            if (response.ok && response.status === 200) {
+                const userData = await response.json();
+                if (userData) {
+                    setFormData((prevData) => ({
+                        ...prevData,
+                        ...userData,
+                        idUsuario: parseInt(idUsuario),
+                    }));
+                } else {
+                    alert("No se encontraron datos para el usuario especificado.");
+                }
+            } else if (response.status === 204) {
+                alert("No hay contenido para el usuario solicitado.");
+            } else {
+                alert("Error al cargar los datos del usuario.");
+            }
+        } catch (error) {
+            alert(`Error de red: ${error.message}`);
+        }
+    };
+
     // Manejador para cambios en los inputs
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -104,7 +135,6 @@ function FormComponent() {
             },
         }));
     };
-
 
     const [estados, setEstados] = useState([]); // Lista de estados
     const [municipios, setMunicipios] = useState([]); // Lista de municipios
@@ -153,7 +183,6 @@ function FormComponent() {
         setColonias([]);
         setSelectedMunicipio("");
     };
-
 
     // Maneja el cambio de municipio
     const handleMunicipioChange = (e) => {
@@ -237,22 +266,25 @@ function FormComponent() {
 
         const requestData = {
             ...formData,
+            idUsuario: idUsuario ? parseInt(idUsuario) : 0,
             imagenBase64: previewImage ? base64String : "",
             imagenPerfil: undefined // No enviar el archivo directamente
         };
 
+        const url = idUsuario
+            ? `http://localhost:5054/api/usuario/update/${idUsuario}`
+            : "http://localhost:5054/api/usuario/add";
+
         try {
-            const response = await fetch("http://localhost:5054/api/usuario/add", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(requestData), // Convertir a JSON
+            const response = await fetch(url, {
+                method: "POST", // Usamos POST en ambos casos
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestData),
             });
 
             if (response.ok) {
                 const result = await response.json();
-                alert(result.message || "Usuario agregado con éxito.");
+                alert(result.message || (idUsuario ? "Usuario actualizado con éxito." : "Usuario agregado con éxito."));
                 navigate("/"); // Redirige a la lista de usuarios
             } else {
                 const error = await response.json();
@@ -266,7 +298,7 @@ function FormComponent() {
     return (
         <div className="container mx-auto p-6">
             <h1 className="text-4xl font-extrabold text-center mb-8 text-blue-500">
-                Registrar Nuevo Usuario
+                {idUsuario ? "Editar Usuario" : "Agregar Nuevo Usuario"}
             </h1>
             <form
                 onSubmit={handleSubmit}
@@ -429,17 +461,38 @@ function FormComponent() {
                     </select>
                     {formErrors.idRol && <p className="text-red-500 mt-1 text-xs">{formErrors.idRol}</p>}
                 </div>
-
                 <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Dirección</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Calle</label>
                     <input
                         type="text"
-                        name="direccion"
-                        value={formData.idDireccion}
+                        name="calle"
+                        value={formData.calle}
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {formErrors.idDireccion && <p className="text-red-500 mt-1 text-xs">{formErrors.idDireccion}</p>}
+                    {formErrors.calle && <p className="text-red-500 mt-1 text-xs">{formErrors.calle}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Número Exterior</label>
+                    <input
+                        type="text"
+                        name="numeroExterior"
+                        value={formData.numeroExterior}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    {formErrors.numeroExterior && <p className="text-red-500 mt-1 text-xs">{formErrors.numeroExterior}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Número interior</label>
+                    <input
+                        type="text"
+                        name="numeroInterior"
+                        value={formData.numeroInterior}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    {formErrors.numeroInterior && <p className="text-red-500 mt-1 text-xs">{formErrors.numeroInterior}</p>}
                 </div>
 
                 {/* Estado */}
@@ -520,7 +573,7 @@ function FormComponent() {
                         type="submit"
                         className="w-2/3 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition duration-200"
                     >
-                        Guardar Usuario
+                        {idUsuario ? "Actualizar" : "Agregar"}
                     </button>
                 </div>
             </form>
