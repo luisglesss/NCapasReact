@@ -42,7 +42,7 @@ namespace NCapasReact.Server.Controllers
             // Devuelve los datos o un mensaje de error en base al resultado
             if (result.Correct)
             {
-                return Ok(result.Objects); // Retorna solo la lista de usuarios
+                return Ok(result.Object); // Retorna solo la lista de usuarios
             }
             else
             {
