@@ -59,6 +59,7 @@ namespace BL
             return result;
         }
 
+        //Cometario
         public static ML.Result GetById(int id_user)
         {
             ML.Result result = new ML.Result();
@@ -91,9 +92,9 @@ namespace BL
                             Celular = usuario.Celular,
                             // Convertir FechaNacimiento a string si tiene valor
                             FechaNacimiento = usuario.FechaNacimiento?.ToString("yyyy-MM-dd") ?? null,
-                            CURP = usuario.Curp,
-                            IdRol = rol != null ? rol.Nombre.ToString() : null
+                            CURP = usuario.Curp
                         };
+
 
                         result.Object = mlUsuario;
                         result.Correct = true;
